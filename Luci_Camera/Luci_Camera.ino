@@ -45,6 +45,16 @@ int bedFunction = 0;
 int phototransistorValue;
 int newMagnetValue;
 int oldMagnetValue; 
+
+//Variabili per il reset del WiFi
+int timeToReset = 1;
+bool isTimeToResetWifi = false;
+int millisCount = 0;
+int secondsCount = 0;
+int minutesCount = 0;
+int hoursCount = 0;
+
+//Variabili per l'ora
 const int GMT = 1;
 RTCZero rtc;
 
@@ -168,21 +178,6 @@ void loop()
     socketStatus = !socketStatus;
   }
 
-   // Accende/Spegne la Striscia LED
-  if(bedFunction == -2)
-  {
-    WiFi.disconnect();
-    Serial.println("Disconnected from the network.");
-    delay(10000);
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid, pass);
-    // wait 10 seconds for connection:
-    delay(10000);  
-    server.begin();                           // start the web server on port 80
-    printWifiStatus();                        // you're connected now, so print out the status
-    bedButton.clicks = 0;
-  }
-
   // Accende/Spegne il Lampadario se 1 click
   if(doorFunction == 1) 
   {
@@ -230,6 +225,22 @@ void loop()
   {
     stripStatus = !stripStatus;
   }  
+
+  
+   // Reset del WiFi
+  if(checkTimeForWifiReset())
+  {
+    WiFi.disconnect();
+    Serial.println("Disconnected from the network.");
+    delay(10000);
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    status = WiFi.begin(ssid, pass);
+    // wait 10 seconds for connection:
+    delay(10000);  
+    server.begin();                           // start the web server on port 80
+    printWifiStatus();                        // you're connected now, so print out the status
+    bedButton.clicks = 0;
+  }
 
   // Aggiorna le uscite
   digitalWrite(chandPin, chandStatus);
@@ -423,3 +434,35 @@ void print2digits(int number) {
   }
   Serial.print(number);
 }
+
+bool checkTimeForWifiReset()
+{
+  int currentMillis = millis();
+  if((currentMillis - millisCount) >= 1000 || (currentMillis - millisCount) <= 1000 )
+  {
+    secondsCount++;
+  }
+  millisCount = currentMillis;
+  if(secondsCount == 60)
+  {
+    secondsCount = 0;
+    minutesCount++;
+  }
+  if(minutesCount == 60)
+  {
+    minutesCount = 0;
+    hoursCount++;
+  }  
+  if(hoursCount == timeToReset)
+  {
+    secondsCount = 0;
+    minutesCount = 0;
+    hoursCount = 0;
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
