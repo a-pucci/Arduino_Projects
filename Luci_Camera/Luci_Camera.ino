@@ -3,7 +3,6 @@
 #include <WiFi101.h>
 #include <RTCZero.h>
 
-
 //****************************** Codice per luci ******************************
 
 // Lampadario
@@ -45,14 +44,6 @@ int bedFunction = 0;
 int phototransistorValue;
 int newMagnetValue;
 int oldMagnetValue; 
-
-//Variabili per il reset del WiFi
-int timeToReset = 1;
-bool isTimeToResetWifi = false;
-int millisCount = 0;
-int secondsCount = 0;
-int minutesCount = 0;
-int hoursCount = 0;
 
 //Variabili per l'ora
 const int GMT = 1;
@@ -226,22 +217,6 @@ void loop()
     stripStatus = !stripStatus;
   }  
 
-  
-   // Reset del WiFi
-  if(checkTimeForWifiReset())
-  {
-    WiFi.disconnect();
-    Serial.println("Disconnected from the network.");
-    delay(10000);
-    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-    status = WiFi.begin(ssid, pass);
-    // wait 10 seconds for connection:
-    delay(10000);  
-    server.begin();                           // start the web server on port 80
-    printWifiStatus();                        // you're connected now, so print out the status
-    bedButton.clicks = 0;
-  }
-
   // Aggiorna le uscite
   digitalWrite(chandPin, chandStatus);
   digitalWrite(stripPin, stripStatus);
@@ -326,8 +301,7 @@ void loop()
               else
               {
                 client.println("Acceso<br>");
-              } 
-             
+              }            
               
   
               // The HTTP response ends with another blank line:
@@ -384,7 +358,16 @@ void loop()
       // close the connection:
       client.stop();
      // Serial.println("client disonnected");
-    }  
+    } 
+
+     // Reset  WiFi
+     static uint32_t previousTime;
+     uint32_t currentTime = millis();
+     if(abs(currentTime - previousTime) >= 6*60*60*1000UL)
+     {
+       previousTime = currentTime;
+       resetWifi();
+     }
   }
 
 void printWifiStatus() {
@@ -435,34 +418,16 @@ void print2digits(int number) {
   Serial.print(number);
 }
 
-bool checkTimeForWifiReset()
+void resetWifi()
 {
-  int currentMillis = millis();
-  if((currentMillis - millisCount) >= 1000 || (currentMillis - millisCount) <= 1000 )
-  {
-    secondsCount++;
-  }
-  millisCount = currentMillis;
-  if(secondsCount == 60)
-  {
-    secondsCount = 0;
-    minutesCount++;
-  }
-  if(minutesCount == 60)
-  {
-    minutesCount = 0;
-    hoursCount++;
-  }  
-  if(hoursCount == timeToReset)
-  {
-    secondsCount = 0;
-    minutesCount = 0;
-    hoursCount = 0;
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+    WiFi.disconnect();
+    Serial.println("Disconnected from the network.");
+    delay(10000);
+    // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
+    status = WiFi.begin(ssid, pass);
+    // wait 10 seconds for connection:
+    delay(10000);  
+    server.begin();                           // start the web server on port 80
+    printWifiStatus();                        // you're connected now, so print out the status
 }
 
