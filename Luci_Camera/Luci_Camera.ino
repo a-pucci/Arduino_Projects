@@ -51,7 +51,7 @@ RTCZero rtc;
 
 //****************************** Codice per WIFI ******************************
 
-char ssid[] = "Telecom-22050449";      //  your network SSID (name)
+char ssid[] = "Vodafone-48663643";      //  your network SSID (name)
 char pass[] = "GiuliaStudia!0";   // your network password
 int keyIndex = 0;                 // your network key Index number (needed only for WEP)
 
@@ -172,13 +172,7 @@ void loop()
   // Accende/Spegne il Lampadario se 1 click
   if(doorFunction == 1) 
   {
-    chandStatus = !chandStatus;
-  }
-  
-  // Accende/Spegne Lampadario, Striscia LED e Faretto se 2 click 
-  if(doorFunction == 2) 
-  {
-     if(chandStatus == stripStatus)
+    if(chandStatus == stripStatus)
     {
       chandStatus = !chandStatus;
       stripStatus = !stripStatus;
@@ -194,6 +188,13 @@ void loop()
     {
       chandStatus = false;
     }
+
+  }
+  
+  // Accende/Spegne Lampadario, Striscia LED e Faretto se 2 click 
+  if(doorFunction == 2) 
+  {
+    chandStatus = !chandStatus;
   }
 
   // Accende/Spegne il faretto
@@ -272,7 +273,7 @@ void loop()
                client.println(" Acceso<br>");
               }         
               // Striscia Led
-              client.print("Striscia Led: ");
+              client.print("Led Mensola: ");
               if(stripStatus)
               {
                 client.println("Spento<br>");               
@@ -282,7 +283,7 @@ void loop()
                 client.println("Acceso<br>");
               } 
               // Faretto
-              client.print("Faretto: ");
+              client.print("Led Armadio: ");
               if(spotStatus)
               {
                 client.println("Spento<br>");               
@@ -324,13 +325,13 @@ void loop()
             chandStatus = !chandStatus;
             digitalWrite(chandPin, chandStatus);        
           }
-          // Striscia Led
+          // Led Mensola
           if (currentLine.endsWith("GET /S")) {
             stripStatus = !stripStatus;
             digitalWrite(stripPin, stripStatus);           
           }
           
-          // Faretto
+          // Led Armadio
           if (currentLine.endsWith("GET /F")) {
             spotStatus = !spotStatus;
             digitalWrite(spotPin, spotStatus);            
